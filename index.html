@@ -95,6 +95,13 @@
     #upload-hint.show{display:block}
     [hidden]{display:none !important}
 
+    /* 이미지 크게보기(라이트박스) */
+    #lightbox{ position:fixed; inset:0; z-index:100; background:rgba(0,0,0,.92);
+      display:flex; align-items:center; justify-content:center; padding:20px; cursor:zoom-out; }
+    #lightbox img{ max-width:100%; max-height:100%; border-radius:8px; }
+    #lightbox .close{ position:absolute; top:14px; right:18px; color:#fff; font-size:28px;
+      background:transparent; border:none; cursor:pointer; line-height:1; }
+
     /* ── 데스크톱: 사이드바 + 채팅 나란히 ── */
     @media (min-width:900px){
       #sidebar{ width:300px; flex:0 0 300px; border-right:1px solid var(--line); }
@@ -169,6 +176,12 @@
     </div>
   </div>
 
+  <!-- 이미지 크게보기 -->
+  <div id="lightbox" hidden>
+    <button class="close" id="lightbox-close" title="닫기">✕</button>
+    <img id="lightbox-img" alt="" />
+  </div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged }
@@ -222,6 +235,14 @@
     }
     $("login-btn").onclick = doLogin;
     $("logout-btn").onclick = () => signOut(auth);
+
+    // 이미지 크게보기(라이트박스)
+    const lightbox=$("lightbox"), lightboxImg=$("lightbox-img");
+    function openLightbox(src){ lightboxImg.src=src; lightbox.hidden=false; }
+    function closeLightbox(){ lightbox.hidden=true; lightboxImg.src=""; }
+    lightbox.onclick=closeLightbox;
+    $("lightbox-close").onclick=(e)=>{ e.stopPropagation(); closeLightbox(); };
+    document.addEventListener("keydown", e=>{ if(e.key==="Escape" && !lightbox.hidden) closeLightbox(); });
     backBtn.onclick = () => appEl.classList.replace("m-chat","m-list");
     newRoomBtn.onclick = createRoom;
     emptyNewRoom.onclick = createRoom;
@@ -358,7 +379,7 @@
       const b=document.createElement("div"); b.className="bubble";
       const imgSrc=m.imageData||m.imageUrl;
       if(imgSrc){
-        const img=document.createElement("img"); img.src=imgSrc; img.loading="lazy"; img.onclick=()=>window.open(imgSrc,"_blank");
+        const img=document.createElement("img"); img.src=imgSrc; img.loading="lazy"; img.onclick=()=>openLightbox(imgSrc);
         if(m.text){ b.appendChild(img); const c=document.createElement("div"); c.className="caption"; c.textContent=m.text; b.appendChild(c); }
         else { b.classList.add("img-only"); b.appendChild(img); }
       } else { b.textContent=m.text||""; }
