@@ -169,7 +169,7 @@
       </div>
 
       <div id="messages" hidden></div>
-      <div id="upload-hint">🖼️ 이미지 업로드 중…</div>
+      <div id="upload-hint">🖼️ 이미지 처리 중…</div>
       <form id="composer" hidden>
         <div class="composer-inner">
           <button type="button" id="attach-btn" title="이미지 첨부">＋</button>
@@ -187,14 +187,11 @@
       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import { getFirestore, collection, addDoc, doc, setDoc, query, orderBy, limit, onSnapshot, serverTimestamp }
       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-    import { getStorage, ref as sref, uploadBytes, getDownloadURL }
-      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
     import { firebaseConfig, ALLOWED_EMAILS, ROOM_ID } from "./firebase-config.js";
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-    const storage = getStorage(app);
     const allow = ALLOWED_EMAILS.map(e => e.trim().toLowerCase());
 
     const $ = id => document.getElementById(id);
@@ -271,14 +268,11 @@
     function render(){
       const atBottom = messagesEl.scrollHeight - messagesEl.scrollTop - messagesEl.clientHeight < 140;
       messagesEl.innerHTML=""; let lastDay="";
-      // 내 마지막 메시지 인덱스(읽음표시용)
-      let lastMineIdx=-1;
-      msgs.forEach((m,i)=>{ if((m.senderEmail||"").toLowerCase()===(me.email||"").toLowerCase()) lastMineIdx=i; });
-      msgs.forEach((m,i)=>{
+      msgs.forEach((m)=>{
         const t = m.createdAt?.toDate ? m.createdAt.toDate() : null;
         const day = t ? t.toLocaleDateString("ko-KR",{month:"long",day:"numeric",weekday:"short"}) : "";
         if (day && day!==lastDay){ addSep(day); lastDay=day; }
-        addMsg(m,t,i===lastMineIdx);
+        addMsg(m,t);
       });
       if (atBottom) messagesEl.scrollTop = messagesEl.scrollHeight;
     }
@@ -286,29 +280,30 @@
     function addSep(text){
       const d=document.createElement("div"); d.className="daysep"; d.textContent=text; messagesEl.appendChild(d);
     }
-    function addMsg(m,t,isMyLast){
+    function addMsg(m,t){
       const mine = (m.senderEmail||"").toLowerCase()===(me.email||"").toLowerCase();
       const row=document.createElement("div"); row.className="row "+(mine?"me":"you");
       if(!mine){ const n=document.createElement("div"); n.className="name"; n.textContent=m.senderName||m.senderEmail||"상대"; row.appendChild(n); }
       const b=document.createElement("div"); b.className="bubble";
-      if(m.imageUrl){
-        const img=document.createElement("img"); img.src=m.imageUrl; img.loading="lazy";
-        img.onclick=()=>window.open(m.imageUrl,"_blank");
+      const imgSrc = m.imageData || m.imageUrl;
+      if(imgSrc){
+        const img=document.createElement("img"); img.src=imgSrc; img.loading="lazy";
+        img.onclick=()=>window.open(imgSrc,"_blank");
         if(m.text){ b.appendChild(img); const c=document.createElement("div"); c.className="caption"; c.textContent=m.text; b.appendChild(c); }
         else { b.classList.add("img-only"); b.appendChild(img); }
       } else { b.textContent=m.text||""; }
       row.appendChild(b);
 
       const meta=document.createElement("div"); meta.className="metaline";
-      const time=document.createElement("span"); time.className="time";
-      time.textContent = t ? t.toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"}) : "전송 중…";
-      // 읽음 표시: 내 마지막 메시지에만
-      if(mine && isMyLast && t){
+      // 읽음 표시: 내가 보낸 각 메시지마다 (상대가 읽었으면 '읽음', 아니면 '안읽음')
+      if(mine && t){
         const read = peerReadAt && peerReadAt.getTime() >= t.getTime();
         const rm=document.createElement("span"); rm.className="readmark"+(read?"":" unread");
         rm.textContent = read ? "읽음" : "안읽음";
         meta.appendChild(rm);
       }
+      const time=document.createElement("span"); time.className="time";
+      time.textContent = t ? t.toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"}) : "전송 중…";
       meta.appendChild(time);
       row.appendChild(meta);
       messagesEl.appendChild(row);
@@ -328,26 +323,40 @@
       input.focus();
     });
 
-    // 이미지 전송
+    // 이미지 전송 (Storage/결제 없이: 브라우저에서 압축 후 Firestore에 저장)
     attachBtn.onclick = ()=> fileInput.click();
     fileInput.addEventListener("change", async e=>{
       const file=e.target.files[0]; e.target.value="";
       if(!file||!me) return;
       if(!file.type.startsWith("image/")){ alert("이미지 파일만 보낼 수 있어요."); return; }
-      if(file.size > 10*1024*1024){ alert("이미지는 10MB 이하만 가능해요."); return; }
       uploadHint.classList.add("show"); attachBtn.disabled=true;
       try{
-        const safe = file.name.replace(/[^\w.\-]/g,"_");
-        const path = `rooms/${ROOM_ID}/${Date.now()}_${safe}`;
-        const r = sref(storage, path);
-        await uploadBytes(r, file);
-        const url = await getDownloadURL(r);
+        const dataUrl = await compressImage(file);
+        if(dataUrl.length > 950*1024) throw new Error("이미지 용량이 너무 커요. 더 작은 사진으로 보내주세요.");
         await addDoc(collection(db,"rooms",ROOM_ID,"messages"),{
-          imageUrl:url, senderEmail:me.email, senderName:me.displayName||me.email, createdAt:serverTimestamp()
+          imageData:dataUrl, senderEmail:me.email, senderName:me.displayName||me.email, createdAt:serverTimestamp()
         });
       }catch(err){ alert("이미지 전송 실패: "+err.message); }
       uploadHint.classList.remove("show"); attachBtn.disabled=false;
     });
+
+    function loadImage(file){
+      return new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=()=>rej(new Error("이미지를 읽을 수 없어요.")); i.src=URL.createObjectURL(file); });
+    }
+    // 긴 변 최대 1024px, JPEG 품질 조절로 Firestore 1MB 한도 안에 맞춤
+    async function compressImage(file, maxDim=1024){
+      const img = await loadImage(file);
+      let w=img.naturalWidth, h=img.naturalHeight;
+      if(Math.max(w,h) > maxDim){
+        if(w>=h){ h=Math.round(h*maxDim/w); w=maxDim; } else { w=Math.round(w*maxDim/h); h=maxDim; }
+      }
+      const c=document.createElement("canvas"); c.width=w; c.height=h;
+      c.getContext("2d").drawImage(img,0,0,w,h);
+      URL.revokeObjectURL(img.src);
+      let q=0.72, url=c.toDataURL("image/jpeg",q);
+      while(url.length > 900*1024 && q>0.3){ q-=0.15; url=c.toDataURL("image/jpeg",q); }
+      return url;
+    }
   </script>
 </body>
 </html>
