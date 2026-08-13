@@ -131,6 +131,7 @@
         <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt=""/>
         구글로 로그인
       </button>
+      <div id="login-error" hidden style="color:#f87171; font-size:12px; max-width:340px; word-break:break-all; line-height:1.5"></div>
     </div>
 
     <!-- 사이드바: 방 목록 -->
@@ -212,24 +213,28 @@
     let unsubRooms=null, unsubMsgs=null, unsubReads=null;
     let msgs=[], readsMap={}, lastMarkedTs=0;
 
-    // 리디렉트 로그인 결과 처리(모바일 등에서 돌아왔을 때)
-    getRedirectResult(auth).catch(e=>console.error("redirect 결과:", e));
+    // 리디렉트 로그인 결과 처리(돌아왔을 때) + 에러를 화면에 표시
+    getRedirectResult(auth).catch(e=>{ console.error("redirect 결과:", e); showLoginError("redirect", e); });
 
-    // 팝업 로그인 시도 → 팝업 차단/쿠키 문제(auth/internal-error 등)면 리디렉트로 자동 전환
+    function showLoginError(where, err){
+      const el=$("login-error");
+      el.textContent = `[${where}] ${err.code||""} ${err.message||err}`.trim();
+      el.hidden=false;
+    }
+
     async function doLogin(){
+      $("login-error").hidden=true;
       const provider = new GoogleAuthProvider();
-      const redirectCodes = [
-        "auth/popup-blocked","auth/popup-closed-by-user","auth/cancelled-popup-request",
-        "auth/internal-error","auth/operation-not-supported-in-this-environment","auth/web-storage-unsupported"
-      ];
       try{
         await signInWithPopup(auth, provider);
       }catch(err){
-        if(redirectCodes.includes(err.code)){
+        console.error("popup 로그인 오류:", err);
+        // 팝업 자체가 막힌 경우에만 리디렉트로 재시도
+        if(err.code==="auth/popup-blocked" || err.code==="auth/operation-not-supported-in-this-environment"){
           try{ await signInWithRedirect(auth, provider); }
-          catch(e2){ alert("로그인 오류: "+e2.message); }
+          catch(e2){ showLoginError("redirect", e2); }
         }else{
-          alert("로그인 오류: "+(err.message||err.code));
+          showLoginError("popup", err);   // 그 외 에러는 코드를 그대로 보여줌
         }
       }
     }
