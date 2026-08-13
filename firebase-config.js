@@ -4,8 +4,7 @@
 // ─────────────────────────────────────────────────────────────
 export const firebaseConfig = {
   apiKey: "AIzaSyB6BK5lnLjD4mn2-b-7wrTWZZnQDM_iflQ",
-  // 로그인 처리를 앱과 같은 도메인에서(프록시 _redirects) → 크롬 서드파티 쿠키 문제 해결
-  authDomain: "effulgent-fenglisu-a9821a.netlify.app",
+  authDomain: "camp-camo-chat.firebaseapp.com",
   projectId: "camp-camo-chat",
   storageBucket: "camp-camo-chat.firebasestorage.app",
   messagingSenderId: "674520943680",
