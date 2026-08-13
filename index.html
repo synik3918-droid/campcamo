@@ -336,23 +336,40 @@
         await addDoc(collection(db,"rooms",ROOM_ID,"messages"),{
           imageData:dataUrl, senderEmail:me.email, senderName:me.displayName||me.email, createdAt:serverTimestamp()
         });
-      }catch(err){ alert("이미지 전송 실패: "+err.message); }
+      }catch(err){
+        const msg = err.message==="UNSUPPORTED_FORMAT"
+          ? "이 사진 형식은 브라우저에서 열 수 없어요 (아이폰 HEIC일 수 있어요).\nJPG/PNG나 스크린샷으로 보내보세요."
+          : "이미지 전송 실패: "+err.message;
+        alert(msg);
+      }
       uploadHint.classList.remove("show"); attachBtn.disabled=false;
     });
 
-    function loadImage(file){
-      return new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=()=>rej(new Error("이미지를 읽을 수 없어요.")); i.src=URL.createObjectURL(file); });
+    // 파일 → 디코딩 (포맷·회전 처리 우수한 createImageBitmap 우선, 실패 시 <img> 폴백)
+    async function decodeImage(file){
+      if(window.createImageBitmap){
+        try{ return await createImageBitmap(file, {imageOrientation:"from-image"}); }
+        catch(_){ /* 폴백으로 진행 */ }
+      }
+      return await new Promise((res,rej)=>{
+        const i=new Image(); const url=URL.createObjectURL(file);
+        i.onload=()=>res(i);
+        i.onerror=()=>{ URL.revokeObjectURL(url); rej(new Error("UNSUPPORTED_FORMAT")); };
+        i.src=url;
+      });
     }
     // 긴 변 최대 1024px, JPEG 품질 조절로 Firestore 1MB 한도 안에 맞춤
     async function compressImage(file, maxDim=1024){
-      const img = await loadImage(file);
-      let w=img.naturalWidth, h=img.naturalHeight;
+      const src = await decodeImage(file);
+      let w = src.width || src.naturalWidth, h = src.height || src.naturalHeight;
+      if(!w || !h) throw new Error("UNSUPPORTED_FORMAT");
       if(Math.max(w,h) > maxDim){
         if(w>=h){ h=Math.round(h*maxDim/w); w=maxDim; } else { w=Math.round(w*maxDim/h); h=maxDim; }
       }
       const c=document.createElement("canvas"); c.width=w; c.height=h;
-      c.getContext("2d").drawImage(img,0,0,w,h);
-      URL.revokeObjectURL(img.src);
+      c.getContext("2d").drawImage(src,0,0,w,h);
+      if(src.close) src.close();
+      if(src.src && src.src.startsWith("blob:")) URL.revokeObjectURL(src.src);
       let q=0.72, url=c.toDataURL("image/jpeg",q);
       while(url.length > 900*1024 && q>0.3){ q-=0.15; url=c.toDataURL("image/jpeg",q); }
       return url;
