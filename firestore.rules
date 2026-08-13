@@ -7,8 +7,8 @@ service cloud.firestore {
     function allowed() {
       return request.auth != null
         && request.auth.token.email in [
-          'synik3918@gmail.com',   // 서영님
-          'friend@gmail.com'       // ← 지인 이메일로 교체
+          'synik3918@gmail.com',      // 서영님
+          'shinkoo.yoon@gmail.com'    // 지인
         ];
     }
 
