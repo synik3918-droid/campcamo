@@ -171,7 +171,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged }
       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import { getFirestore, collection, addDoc, doc, setDoc, updateDoc, query, where, orderBy, limit, onSnapshot, serverTimestamp }
       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -199,7 +199,28 @@
     let unsubRooms=null, unsubMsgs=null, unsubReads=null;
     let msgs=[], readsMap={}, lastMarkedTs=0;
 
-    $("login-btn").onclick = () => signInWithPopup(auth, new GoogleAuthProvider()).catch(e=>alert(e.message));
+    // 리디렉트 로그인 결과 처리(모바일 등에서 돌아왔을 때)
+    getRedirectResult(auth).catch(e=>console.error("redirect 결과:", e));
+
+    // 팝업 로그인 시도 → 팝업 차단/쿠키 문제(auth/internal-error 등)면 리디렉트로 자동 전환
+    async function doLogin(){
+      const provider = new GoogleAuthProvider();
+      const redirectCodes = [
+        "auth/popup-blocked","auth/popup-closed-by-user","auth/cancelled-popup-request",
+        "auth/internal-error","auth/operation-not-supported-in-this-environment","auth/web-storage-unsupported"
+      ];
+      try{
+        await signInWithPopup(auth, provider);
+      }catch(err){
+        if(redirectCodes.includes(err.code)){
+          try{ await signInWithRedirect(auth, provider); }
+          catch(e2){ alert("로그인 오류: "+e2.message); }
+        }else{
+          alert("로그인 오류: "+(err.message||err.code));
+        }
+      }
+    }
+    $("login-btn").onclick = doLogin;
     $("logout-btn").onclick = () => signOut(auth);
     backBtn.onclick = () => appEl.classList.replace("m-chat","m-list");
     newRoomBtn.onclick = createRoom;
