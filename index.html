@@ -8,59 +8,65 @@
     :root{
       --bg:#0b0d12; --panel:#171a21; --side:#12151b; --line:#262b36;
       --me:#3b82f6; --you:#2a2f3a; --text:#e7eaf0; --sub:#8b93a3;
-      --accent:#4ade80;
+      --accent:#4ade80; --active:#222838;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
     body{
       margin:0; background:var(--bg); color:var(--text);
-      font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard",
-                  "Malgun Gothic",sans-serif;
+      font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Malgun Gothic",sans-serif;
       display:flex; justify-content:center;
     }
-    #app{
-      width:100%; max-width:520px; height:100dvh;
-      display:flex; flex-direction:column; background:var(--panel);
-      border-left:1px solid var(--line); border-right:1px solid var(--line);
-    }
-    #sidebar{ display:none; }
-    header{
-      display:flex; align-items:center; justify-content:space-between;
-      padding:14px 16px; border-bottom:1px solid var(--line);
-      background:var(--panel); position:sticky; top:0; z-index:2;
-    }
-    header .title{font-weight:700; font-size:16px}
-    header .sub{font-size:12px; color:var(--sub); margin-top:2px}
-    .ghost-btn{
-      background:transparent; color:var(--sub); border:1px solid var(--line);
-      border-radius:8px; padding:6px 10px; font-size:12px; cursor:pointer;
-    }
+    #app{ width:100%; max-width:1280px; height:100dvh; display:flex; background:var(--panel);
+          border-left:1px solid var(--line); border-right:1px solid var(--line); }
+    .ghost-btn{ background:transparent; color:var(--sub); border:1px solid var(--line);
+      border-radius:8px; padding:6px 10px; font-size:12px; cursor:pointer; }
     .ghost-btn:hover{color:var(--text); border-color:var(--sub)}
-    .center{
-      flex:1; display:flex; flex-direction:column; align-items:center;
-      justify-content:center; gap:16px; padding:24px; text-align:center;
-    }
-    .center h1{font-size:22px; margin:0}
-    .center p{color:var(--sub); margin:0; line-height:1.6; font-size:14px}
-    .gbtn{
-      display:inline-flex; align-items:center; gap:10px; cursor:pointer;
-      background:#fff; color:#111; border:none; border-radius:10px;
-      padding:12px 18px; font-size:15px; font-weight:600;
-    }
+
+    /* ── 로그인 오버레이 ── */
+    #login-view{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+      gap:16px; padding:24px; text-align:center; }
+    #login-view h1{font-size:24px; margin:0}
+    #login-view p{color:var(--sub); margin:0; line-height:1.6; font-size:14px}
+    .gbtn{ display:inline-flex; align-items:center; gap:10px; cursor:pointer; background:#fff; color:#111;
+      border:none; border-radius:10px; padding:12px 18px; font-size:15px; font-weight:600; }
     .gbtn img{width:18px;height:18px}
+
+    /* ── 사이드바(방 목록) ── */
+    #sidebar{ display:flex; flex-direction:column; background:var(--side); }
+    .side-head{ display:flex; align-items:center; justify-content:space-between; padding:16px;
+      border-bottom:1px solid var(--line); }
+    .side-head .brand{ font-weight:800; font-size:16px; }
+    #room-list{ flex:1; overflow-y:auto; padding:8px; }
+    .room-item{ width:100%; text-align:left; background:transparent; border:none; color:var(--text);
+      padding:11px 12px; border-radius:10px; cursor:pointer; display:block; margin-bottom:2px; }
+    .room-item:hover{ background:var(--active); }
+    .room-item.active{ background:var(--active); }
+    .room-item .rn{ font-size:14px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .room-item .rs{ font-size:11px; color:var(--sub); margin-top:3px; }
+    .room-empty{ color:var(--sub); font-size:13px; text-align:center; padding:24px 12px; line-height:1.6; }
+    .side-foot{ border-top:1px solid var(--line); padding:12px 16px; display:flex; align-items:center;
+      justify-content:space-between; gap:8px; }
+    .side-foot .sm{ font-size:12px; color:var(--sub); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+    /* ── 채팅 컬럼 ── */
     #chat-col{ flex:1; display:flex; flex-direction:column; min-width:0; min-height:0; }
-    #messages{
-      flex:1; overflow-y:auto; padding:16px; display:flex;
-      flex-direction:column; gap:10px;
-    }
+    #chat-header{ display:flex; align-items:center; gap:10px; padding:12px 16px;
+      border-bottom:1px solid var(--line); background:var(--panel); }
+    #chat-header .title{font-weight:700; font-size:16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    #chat-header .sub{font-size:12px; color:var(--sub); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    #chat-header .grow{flex:1; min-width:0}
+    #back-btn{ display:none; background:transparent; border:none; color:var(--text); font-size:20px; cursor:pointer; padding:2px 6px; }
+
+    #empty-chat{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+      gap:12px; color:var(--sub); padding:24px; text-align:center; }
+
+    #messages{ flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:10px; }
     .row{display:flex; flex-direction:column; max-width:76%}
     .row.me{align-self:flex-end; align-items:flex-end}
     .row.you{align-self:flex-start; align-items:flex-start}
     .name{font-size:11px; color:var(--sub); margin:0 4px 3px}
-    .bubble{
-      padding:9px 13px; border-radius:16px; font-size:15px; line-height:1.45;
-      white-space:pre-wrap; word-break:break-word;
-    }
+    .bubble{ padding:9px 13px; border-radius:16px; font-size:15px; line-height:1.45; white-space:pre-wrap; word-break:break-word; }
     .me .bubble{background:var(--me); color:#fff; border-bottom-right-radius:5px}
     .you .bubble{background:var(--you); color:var(--text); border-bottom-left-radius:5px}
     .bubble.img-only{ padding:4px; background:transparent !important; }
@@ -71,101 +77,83 @@
     .readmark{font-size:10px; color:var(--accent); font-weight:600}
     .readmark.unread{color:var(--sub); font-weight:400}
     .daysep{align-self:center; color:var(--sub); font-size:11px; margin:8px 0}
-    #composer{
-      display:flex; gap:8px; padding:12px calc(12px + env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left));
-      border-top:1px solid var(--line); background:var(--panel);
-    }
-    #composer .composer-inner{ display:flex; gap:8px; width:100%; align-items:center; }
-    #attach-btn{
-      flex:0 0 auto; background:transparent; border:1px solid var(--line); color:var(--sub);
-      width:42px; height:42px; border-radius:50%; font-size:18px; cursor:pointer;
-      display:flex; align-items:center; justify-content:center;
-    }
+
+    #composer{ display:flex; gap:8px; padding:12px calc(12px + env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left));
+      border-top:1px solid var(--line); background:var(--panel); }
+    .composer-inner{ display:flex; gap:8px; width:100%; align-items:center; max-width:860px; margin:0 auto; }
+    #attach-btn{ flex:0 0 auto; background:transparent; border:1px solid var(--line); color:var(--sub);
+      width:42px; height:42px; border-radius:50%; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
     #attach-btn:hover{color:var(--text); border-color:var(--sub)}
-    #attach-btn:disabled{opacity:.4; cursor:default}
-    #msg-input{
-      flex:1; background:var(--bg); color:var(--text); border:1px solid var(--line);
-      border-radius:22px; padding:11px 16px; font-size:15px; outline:none;
-    }
+    #attach-btn:disabled{opacity:.4}
+    #msg-input{ flex:1; background:var(--bg); color:var(--text); border:1px solid var(--line);
+      border-radius:22px; padding:11px 16px; font-size:15px; outline:none; }
     #msg-input:focus{border-color:var(--me)}
-    #send-btn{
-      flex:0 0 auto; background:var(--me); color:#fff; border:none; border-radius:22px;
-      padding:0 20px; height:42px; font-size:15px; font-weight:600; cursor:pointer;
-    }
+    #send-btn{ flex:0 0 auto; background:var(--me); color:#fff; border:none; border-radius:22px;
+      padding:0 20px; height:42px; font-size:15px; font-weight:600; cursor:pointer; }
     #send-btn:disabled{opacity:.4; cursor:default}
-    #upload-hint{
-      font-size:12px; color:var(--sub); padding:0 16px 8px; display:none;
-    }
+    #upload-hint{ font-size:12px; color:var(--sub); padding:0 16px 8px; display:none; text-align:center; }
     #upload-hint.show{display:block}
     [hidden]{display:none !important}
 
+    /* ── 데스크톱: 사이드바 + 채팅 나란히 ── */
     @media (min-width:900px){
-      body{ background:var(--bg); }
-      #app{
-        max-width:1280px; width:100%; height:100dvh;
-        flex-direction:row; border:1px solid var(--line);
-      }
-      #mobile-header{ display:none; }
-      #sidebar:not([hidden]){
-        display:flex; flex-direction:column; width:280px; flex:0 0 280px;
-        background:var(--side); border-right:1px solid var(--line); padding:22px 20px;
-      }
-      #sidebar .brand{ font-size:18px; font-weight:800; letter-spacing:-.2px; }
-      #sidebar .brand small{ display:block; color:var(--sub); font-size:12px; font-weight:500; margin-top:4px; }
-      #sidebar .peer-card{
-        margin-top:22px; padding:14px; background:var(--panel);
-        border:1px solid var(--line); border-radius:12px;
-      }
-      #sidebar .peer-card .label{ font-size:11px; color:var(--sub); }
-      #sidebar .peer-card .peer{ font-size:14px; font-weight:600; margin-top:5px; word-break:break-all; }
-      #sidebar .peer-card .me{ font-size:12px; color:var(--sub); margin-top:8px; word-break:break-all; }
-      #sidebar .spacer{ flex:1; }
-      #sidebar .side-logout{ width:100%; padding:10px; }
+      #sidebar{ width:300px; flex:0 0 300px; border-right:1px solid var(--line); }
+      #back-btn{ display:none !important; }
       #messages{ padding:24px max(24px, (100% - 860px) / 2); }
       .row{ max-width:min(70%, 600px); }
       #composer{ padding:16px 0 calc(16px + env(safe-area-inset-bottom)); }
-      #composer .composer-inner{ max-width:860px; margin:0 auto; padding:0 24px; }
-      #upload-hint{ max-width:860px; margin:0 auto; }
-      .center{ padding:40px; }
-      .center h1{ font-size:26px; }
+    }
+    /* ── 모바일: 목록/채팅 화면 전환 ── */
+    @media (max-width:899px){
+      #app{ border:none; }
+      #sidebar{ width:100%; flex:1; }
+      #app.m-list #chat-col{ display:none; }
+      #app.m-chat #sidebar{ display:none; }
+      #back-btn{ display:block; }
     }
   </style>
 </head>
 <body>
-  <div id="app">
+  <div id="app" class="m-list">
+
+    <!-- 로그인 전 (전체화면) -->
+    <div id="login-view">
+      <h1>👋 캠프카모 챗</h1>
+      <p>구글 계정으로 로그인하세요.</p>
+      <button class="gbtn" id="login-btn">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt=""/>
+        구글로 로그인
+      </button>
+    </div>
+
+    <!-- 사이드바: 방 목록 -->
     <aside id="sidebar" hidden>
-      <div class="brand">캠프카모 챗<small>1:1 실시간 대화</small></div>
-      <div class="peer-card">
-        <div class="label">대화 상대</div>
-        <div class="peer" id="side-peer">—</div>
-        <div class="me" id="side-me">—</div>
+      <div class="side-head">
+        <div class="brand">캠프카모 챗</div>
+        <button class="ghost-btn" id="new-room-btn" hidden>＋ 새 방</button>
       </div>
-      <div class="spacer"></div>
-      <button class="ghost-btn side-logout" id="logout-btn-2">로그아웃</button>
+      <div id="room-list"></div>
+      <div class="side-foot">
+        <div class="sm" id="side-me">—</div>
+        <button class="ghost-btn" id="logout-btn">로그아웃</button>
+      </div>
     </aside>
 
-    <div id="chat-col">
-      <header id="mobile-header">
-        <div>
-          <div class="title">캠프카모 챗</div>
-          <div class="sub" id="header-sub">1:1 대화</div>
+    <!-- 채팅 컬럼 -->
+    <div id="chat-col" hidden>
+      <header id="chat-header">
+        <button id="back-btn" title="목록">←</button>
+        <div class="grow">
+          <div class="title" id="room-title">—</div>
+          <div class="sub" id="room-sub">—</div>
         </div>
-        <button class="ghost-btn" id="logout-btn" hidden>로그아웃</button>
+        <button class="ghost-btn" id="manage-btn" hidden>멤버 관리</button>
       </header>
 
-      <div class="center" id="login-view">
-        <h1>👋 어서오세요</h1>
-        <p>구글 계정으로 로그인하면<br/>대화를 시작할 수 있어요.</p>
-        <button class="gbtn" id="login-btn">
-          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt=""/>
-          구글로 로그인
-        </button>
-      </div>
-
-      <div class="center" id="denied-view" hidden>
-        <h1>🔒 접근 권한이 없어요</h1>
-        <p id="denied-msg">이 대화는 지정된 두 사람만 볼 수 있어요.</p>
-        <button class="gbtn" id="denied-logout" style="background:#2a2f3a;color:#fff">다른 계정으로</button>
+      <div id="empty-chat">
+        <div style="font-size:34px">💬</div>
+        <div id="empty-text">왼쪽에서 방을 선택하세요.</div>
+        <button class="gbtn" id="empty-new-room" hidden style="background:var(--me);color:#fff">＋ 첫 방 만들기</button>
       </div>
 
       <div id="messages" hidden></div>
@@ -185,195 +173,258 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { getFirestore, collection, addDoc, doc, setDoc, query, orderBy, limit, onSnapshot, serverTimestamp }
+    import { getFirestore, collection, addDoc, doc, setDoc, updateDoc, query, where, orderBy, limit, onSnapshot, serverTimestamp }
       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-    import { firebaseConfig, ALLOWED_EMAILS, ROOM_ID } from "./firebase-config.js";
+    import { firebaseConfig, ADMIN_EMAIL } from "./firebase-config.js";
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-    const allow = ALLOWED_EMAILS.map(e => e.trim().toLowerCase());
 
     const $ = id => document.getElementById(id);
-    const loginView=$("login-view"), deniedView=$("denied-view"), sidebar=$("sidebar");
-    const messagesEl=$("messages"), composer=$("composer");
-    const input=$("msg-input"), sendBtn=$("send-btn");
+    const appEl=$("app"), loginView=$("login-view"), sidebar=$("sidebar"), chatCol=$("chat-col");
+    const roomListEl=$("room-list"), newRoomBtn=$("new-room-btn"), emptyNewRoom=$("empty-new-room");
+    const roomTitle=$("room-title"), roomSub=$("room-sub"), manageBtn=$("manage-btn"), backBtn=$("back-btn");
+    const emptyChat=$("empty-chat"), emptyText=$("empty-text");
+    const messagesEl=$("messages"), composer=$("composer"), input=$("msg-input"), sendBtn=$("send-btn");
     const attachBtn=$("attach-btn"), fileInput=$("file-input"), uploadHint=$("upload-hint");
-    const logoutBtn=$("logout-btn"), logoutBtn2=$("logout-btn-2"), headerSub=$("header-sub");
+    const sideMe=$("side-me");
 
-    let me=null, unsubMsgs=null, unsubPeer=null;
-    let msgs=[], peerReadAt=null, myReadRef=null, lastMarkedTs=0;
-    const keyOf = email => email.trim().toLowerCase().replace(/[.@]/g,"_");
+    const lower = e => (e||"").trim().toLowerCase();
+    const keyOf = e => lower(e).replace(/[.@]/g,"_");
+    const isDesktop = () => window.matchMedia("(min-width:900px)").matches;
+
+    let me=null, isAdmin=false;
+    let rooms=[], currentId=null;
+    let unsubRooms=null, unsubMsgs=null, unsubReads=null;
+    let msgs=[], readsMap={}, lastMarkedTs=0;
 
     $("login-btn").onclick = () => signInWithPopup(auth, new GoogleAuthProvider()).catch(e=>alert(e.message));
-    const doLogout = () => signOut(auth);
-    logoutBtn.onclick = doLogout; logoutBtn2.onclick = doLogout;
-    $("denied-logout").onclick = doLogout;
+    $("logout-btn").onclick = () => signOut(auth);
+    backBtn.onclick = () => appEl.classList.replace("m-chat","m-list");
+    newRoomBtn.onclick = createRoom;
+    emptyNewRoom.onclick = createRoom;
+    manageBtn.onclick = manageMembers;
 
     onAuthStateChanged(auth, user => {
-      if (unsubMsgs){ unsubMsgs(); unsubMsgs=null; }
-      if (unsubPeer){ unsubPeer(); unsubPeer=null; }
-      msgs=[]; peerReadAt=null; lastMarkedTs=0;
-      if (!user) return showView("login");
-      me = user;
-      const email = (user.email||"").toLowerCase();
-      if (!allow.includes(email)) {
-        $("denied-msg").textContent = `${user.email} 계정은 이 대화에 초대되지 않았어요.`;
-        return showView("denied");
+      cleanupRoom(); if(unsubRooms){unsubRooms();unsubRooms=null;}
+      rooms=[]; currentId=null;
+      if(!user){
+        loginView.hidden=false; sidebar.hidden=true; chatCol.hidden=true;
+        appEl.classList.remove("m-chat"); appEl.classList.add("m-list");
+        return;
       }
-      headerSub.textContent = user.displayName ? `${user.displayName} 님으로 접속` : "1:1 대화";
-      const peer = ALLOWED_EMAILS.find(e => e.trim().toLowerCase() !== email) || "상대방";
-      $("side-peer").textContent = peer;
-      $("side-me").textContent = `나: ${user.displayName || user.email}`;
-      showView("chat");
-      start(email, peer);
+      me=user; isAdmin = lower(user.email)===lower(ADMIN_EMAIL);
+      loginView.hidden=true; sidebar.hidden=false; chatCol.hidden=false;
+      newRoomBtn.hidden=!isAdmin; emptyNewRoom.hidden=!isAdmin;
+      sideMe.textContent = user.displayName || user.email;
+      subscribeRooms();
     });
 
-    function showView(v){
-      loginView.hidden = v!=="login";
-      deniedView.hidden = v!=="denied";
-      messagesEl.hidden = v!=="chat";
-      composer.hidden = v!=="chat";
-      logoutBtn.hidden = v!=="chat";
-      sidebar.hidden = v!=="chat";
+    function subscribeRooms(){
+      unsubRooms = onSnapshot(
+        query(collection(db,"rooms"), where("members","array-contains", lower(me.email))),
+        snap => {
+          rooms = snap.docs.map(d=>({id:d.id, ...d.data()}));
+          rooms.sort((a,b)=>(a.createdAt?.seconds||0)-(b.createdAt?.seconds||0));
+          if(currentId && !rooms.find(r=>r.id===currentId)) { cleanupRoom(); currentId=null; }
+          if(!currentId && rooms.length && isDesktop()) selectRoom(rooms[0].id);
+          renderRoomList();
+          if(currentId) refreshHeader();
+          updateEmpty();
+        },
+        e => console.error("방 목록 오류:", e)
+      );
     }
 
-    function start(myEmail, peerEmail){
-      myReadRef = doc(db,"rooms",ROOM_ID,"reads",keyOf(myEmail));
-      // 상대의 '읽음' 상태 구독
-      unsubPeer = onSnapshot(doc(db,"rooms",ROOM_ID,"reads",keyOf(peerEmail)), snap=>{
-        const d = snap.data();
-        peerReadAt = d?.at?.toDate ? d.at.toDate() : null;
-        render();
-      }, e=>console.error("read 구독 오류:",e));
-      // 메시지 구독
-      const q = query(collection(db,"rooms",ROOM_ID,"messages"), orderBy("createdAt"), limit(300));
-      unsubMsgs = onSnapshot(q, snap=>{
-        msgs = snap.docs.map(d=>d.data());
-        render();
-        markRead();   // 새 메시지 보면 내 읽음 갱신
-      }, e=>console.error("메시지 구독 오류:",e));
+    function renderRoomList(){
+      roomListEl.innerHTML="";
+      if(!rooms.length){
+        const d=document.createElement("div"); d.className="room-empty";
+        d.textContent = isAdmin ? "아직 방이 없어요.\n‘＋ 새 방’으로 만들어보세요."
+                                : "참여 중인 방이 없어요.\n관리자가 초대하면 여기에 표시돼요.";
+        roomListEl.appendChild(d); return;
+      }
+      rooms.forEach(r=>{
+        const b=document.createElement("button");
+        b.className="room-item"+(r.id===currentId?" active":"");
+        const n=document.createElement("div"); n.className="rn"; n.textContent=r.name||"(제목 없음)";
+        const s=document.createElement("div"); s.className="rs"; s.textContent=`${(r.members||[]).length}명`;
+        b.appendChild(n); b.appendChild(s);
+        b.onclick=()=>selectRoom(r.id);
+        roomListEl.appendChild(b);
+      });
     }
 
-    // 내 '읽음' 시각을 최신 메시지 시각으로 갱신(상대에게 '읽음' 표시)
+    function cleanupRoom(){
+      if(unsubMsgs){unsubMsgs();unsubMsgs=null;}
+      if(unsubReads){unsubReads();unsubReads=null;}
+      msgs=[]; readsMap={}; lastMarkedTs=0;
+    }
+
+    function selectRoom(id){
+      if(currentId===id){ if(!isDesktop()) appEl.classList.replace("m-list","m-chat"); return; }
+      cleanupRoom(); currentId=id;
+      refreshHeader(); renderRoomList(); updateEmpty();
+      if(!isDesktop()) appEl.classList.replace("m-list","m-chat");
+      unsubMsgs = onSnapshot(
+        query(collection(db,"rooms",id,"messages"), orderBy("createdAt"), limit(300)),
+        snap=>{ msgs=snap.docs.map(d=>d.data()); render(); markRead(); },
+        e=>console.error("메시지 오류:",e));
+      unsubReads = onSnapshot(collection(db,"rooms",id,"reads"),
+        snap=>{ readsMap={}; snap.forEach(d=>{ const at=d.data().at; readsMap[d.id]= at?.toDate?at.toDate():null; }); render(); },
+        e=>console.error("읽음 오류:",e));
+    }
+
+    function currentRoom(){ return rooms.find(r=>r.id===currentId); }
+
+    function refreshHeader(){
+      const r=currentRoom(); if(!r) return;
+      roomTitle.textContent = r.name||"(제목 없음)";
+      const others=(r.members||[]).filter(e=>lower(e)!==lower(me.email));
+      roomSub.textContent = (r.members||[]).length>2
+        ? `${r.members.length}명 · ${others.map(shortName).join(", ")}`
+        : (others[0]||"나 혼자");
+      manageBtn.hidden = !(isAdmin && lower(r.owner)===lower(me.email));
+    }
+    function shortName(email){ return (email||"").split("@")[0]; }
+
+    function updateEmpty(){
+      const has = !!currentRoom();
+      emptyChat.hidden = has;
+      messagesEl.hidden = !has;
+      composer.hidden = !has;
+      $("chat-header").style.visibility = has ? "visible":"hidden";
+      if(!has){
+        emptyText.textContent = rooms.length ? "방을 선택하세요." :
+          (isAdmin ? "방을 만들어 대화를 시작하세요." : "참여 중인 방이 없어요.");
+      }
+    }
+
     async function markRead(){
-      const last = msgs[msgs.length-1];
-      const t = last?.createdAt?.toDate ? last.createdAt.toDate().getTime() : 0;
-      if (!myReadRef || !t || t<=lastMarkedTs) return;
-      lastMarkedTs = t;
-      try{ await setDoc(myReadRef,{ email:me.email, at:serverTimestamp() },{merge:true}); }
-      catch(e){ console.error("읽음 갱신 오류:",e); }
+      const last=msgs[msgs.length-1];
+      const t=last?.createdAt?.toDate ? last.createdAt.toDate().getTime() : 0;
+      if(!currentId || !t || t<=lastMarkedTs) return;
+      lastMarkedTs=t;
+      try{ await setDoc(doc(db,"rooms",currentId,"reads",keyOf(me.email)),{ email:lower(me.email), at:serverTimestamp() },{merge:true}); }
+      catch(e){ console.error("읽음 갱신:",e); }
     }
 
     function render(){
       const atBottom = messagesEl.scrollHeight - messagesEl.scrollTop - messagesEl.clientHeight < 140;
       messagesEl.innerHTML=""; let lastDay="";
-      msgs.forEach((m)=>{
-        const t = m.createdAt?.toDate ? m.createdAt.toDate() : null;
-        const day = t ? t.toLocaleDateString("ko-KR",{month:"long",day:"numeric",weekday:"short"}) : "";
-        if (day && day!==lastDay){ addSep(day); lastDay=day; }
+      msgs.forEach(m=>{
+        const t=m.createdAt?.toDate ? m.createdAt.toDate() : null;
+        const day=t ? t.toLocaleDateString("ko-KR",{month:"long",day:"numeric",weekday:"short"}) : "";
+        if(day && day!==lastDay){ const d=document.createElement("div"); d.className="daysep"; d.textContent=day; messagesEl.appendChild(d); lastDay=day; }
         addMsg(m,t);
       });
-      if (atBottom) messagesEl.scrollTop = messagesEl.scrollHeight;
+      if(atBottom) messagesEl.scrollTop = messagesEl.scrollHeight;
     }
 
-    function addSep(text){
-      const d=document.createElement("div"); d.className="daysep"; d.textContent=text; messagesEl.appendChild(d);
+    function unreadCountFor(t){
+      const r=currentRoom(); if(!r) return 0;
+      const others=(r.members||[]).filter(e=>lower(e)!==lower(me.email));
+      let read=0;
+      for(const e of others){ const rt=readsMap[keyOf(e)]; if(rt && rt.getTime()>=t) read++; }
+      return others.length - read;   // 0이면 전원 읽음
     }
+
     function addMsg(m,t){
-      const mine = (m.senderEmail||"").toLowerCase()===(me.email||"").toLowerCase();
+      const mine = lower(m.senderEmail)===lower(me.email);
       const row=document.createElement("div"); row.className="row "+(mine?"me":"you");
       if(!mine){ const n=document.createElement("div"); n.className="name"; n.textContent=m.senderName||m.senderEmail||"상대"; row.appendChild(n); }
       const b=document.createElement("div"); b.className="bubble";
-      const imgSrc = m.imageData || m.imageUrl;
+      const imgSrc=m.imageData||m.imageUrl;
       if(imgSrc){
-        const img=document.createElement("img"); img.src=imgSrc; img.loading="lazy";
-        img.onclick=()=>window.open(imgSrc,"_blank");
+        const img=document.createElement("img"); img.src=imgSrc; img.loading="lazy"; img.onclick=()=>window.open(imgSrc,"_blank");
         if(m.text){ b.appendChild(img); const c=document.createElement("div"); c.className="caption"; c.textContent=m.text; b.appendChild(c); }
         else { b.classList.add("img-only"); b.appendChild(img); }
       } else { b.textContent=m.text||""; }
       row.appendChild(b);
 
       const meta=document.createElement("div"); meta.className="metaline";
-      // 읽음 표시: 내가 보낸 각 메시지마다 (상대가 읽었으면 '읽음', 아니면 '안읽음')
       if(mine && t){
-        const read = peerReadAt && peerReadAt.getTime() >= t.getTime();
-        const rm=document.createElement("span"); rm.className="readmark"+(read?"":" unread");
-        rm.textContent = read ? "읽음" : "안읽음";
+        const unread=unreadCountFor(t.getTime());
+        const others=(currentRoom()?.members||[]).filter(e=>lower(e)!==lower(me.email)).length;
+        const rm=document.createElement("span");
+        if(unread===0){ rm.className="readmark"; rm.textContent="읽음"; }
+        else if(others<=1){ rm.className="readmark unread"; rm.textContent="안읽음"; }
+        else { rm.className="readmark"; rm.textContent=String(unread); } // 그룹: 안 읽은 인원 수
         meta.appendChild(rm);
       }
       const time=document.createElement("span"); time.className="time";
       time.textContent = t ? t.toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"}) : "전송 중…";
-      meta.appendChild(time);
-      row.appendChild(meta);
+      meta.appendChild(time); row.appendChild(meta);
       messagesEl.appendChild(row);
     }
 
     // 텍스트 전송
     input.addEventListener("input", ()=> sendBtn.disabled = input.value.trim()==="");
     composer.addEventListener("submit", async e=>{
-      e.preventDefault();
-      const text=input.value.trim(); if(!text||!me) return;
+      e.preventDefault(); const text=input.value.trim(); if(!text||!currentId) return;
       input.value=""; sendBtn.disabled=true;
-      try{
-        await addDoc(collection(db,"rooms",ROOM_ID,"messages"),{
-          text, senderEmail:me.email, senderName:me.displayName||me.email, createdAt:serverTimestamp()
-        });
-      }catch(err){ alert("전송 실패: "+err.message); input.value=text; }
+      try{ await addDoc(collection(db,"rooms",currentId,"messages"),{ text, senderEmail:lower(me.email), senderName:me.displayName||me.email, createdAt:serverTimestamp() }); }
+      catch(err){ alert("전송 실패: "+err.message); input.value=text; }
       input.focus();
     });
 
-    // 이미지 전송 (Storage/결제 없이: 브라우저에서 압축 후 Firestore에 저장)
+    // 이미지 전송 (Storage 없이: 압축 후 Firestore 저장)
     attachBtn.onclick = ()=> fileInput.click();
     fileInput.addEventListener("change", async e=>{
-      const file=e.target.files[0]; e.target.value="";
-      if(!file||!me) return;
+      const file=e.target.files[0]; e.target.value=""; if(!file||!currentId) return;
       if(!file.type.startsWith("image/")){ alert("이미지 파일만 보낼 수 있어요."); return; }
       uploadHint.classList.add("show"); attachBtn.disabled=true;
       try{
-        const dataUrl = await compressImage(file);
-        if(dataUrl.length > 950*1024) throw new Error("이미지 용량이 너무 커요. 더 작은 사진으로 보내주세요.");
-        await addDoc(collection(db,"rooms",ROOM_ID,"messages"),{
-          imageData:dataUrl, senderEmail:me.email, senderName:me.displayName||me.email, createdAt:serverTimestamp()
-        });
+        const dataUrl=await compressImage(file);
+        if(dataUrl.length>950*1024) throw new Error("이미지 용량이 너무 커요. 더 작은 사진으로 보내주세요.");
+        await addDoc(collection(db,"rooms",currentId,"messages"),{ imageData:dataUrl, senderEmail:lower(me.email), senderName:me.displayName||me.email, createdAt:serverTimestamp() });
       }catch(err){
-        const msg = err.message==="UNSUPPORTED_FORMAT"
+        alert(err.message==="UNSUPPORTED_FORMAT"
           ? "이 사진 형식은 브라우저에서 열 수 없어요 (아이폰 HEIC일 수 있어요).\nJPG/PNG나 스크린샷으로 보내보세요."
-          : "이미지 전송 실패: "+err.message;
-        alert(msg);
+          : "이미지 전송 실패: "+err.message);
       }
       uploadHint.classList.remove("show"); attachBtn.disabled=false;
     });
-
-    // 파일 → 디코딩 (포맷·회전 처리 우수한 createImageBitmap 우선, 실패 시 <img> 폴백)
     async function decodeImage(file){
-      if(window.createImageBitmap){
-        try{ return await createImageBitmap(file, {imageOrientation:"from-image"}); }
-        catch(_){ /* 폴백으로 진행 */ }
-      }
-      return await new Promise((res,rej)=>{
-        const i=new Image(); const url=URL.createObjectURL(file);
-        i.onload=()=>res(i);
-        i.onerror=()=>{ URL.revokeObjectURL(url); rej(new Error("UNSUPPORTED_FORMAT")); };
-        i.src=url;
-      });
+      if(window.createImageBitmap){ try{ return await createImageBitmap(file,{imageOrientation:"from-image"}); }catch(_){} }
+      return await new Promise((res,rej)=>{ const i=new Image(); const url=URL.createObjectURL(file);
+        i.onload=()=>res(i); i.onerror=()=>{URL.revokeObjectURL(url); rej(new Error("UNSUPPORTED_FORMAT"));}; i.src=url; });
     }
-    // 긴 변 최대 1024px, JPEG 품질 조절로 Firestore 1MB 한도 안에 맞춤
     async function compressImage(file, maxDim=1024){
-      const src = await decodeImage(file);
-      let w = src.width || src.naturalWidth, h = src.height || src.naturalHeight;
-      if(!w || !h) throw new Error("UNSUPPORTED_FORMAT");
-      if(Math.max(w,h) > maxDim){
-        if(w>=h){ h=Math.round(h*maxDim/w); w=maxDim; } else { w=Math.round(w*maxDim/h); h=maxDim; }
-      }
-      const c=document.createElement("canvas"); c.width=w; c.height=h;
-      c.getContext("2d").drawImage(src,0,0,w,h);
-      if(src.close) src.close();
-      if(src.src && src.src.startsWith("blob:")) URL.revokeObjectURL(src.src);
+      const src=await decodeImage(file);
+      let w=src.width||src.naturalWidth, h=src.height||src.naturalHeight;
+      if(!w||!h) throw new Error("UNSUPPORTED_FORMAT");
+      if(Math.max(w,h)>maxDim){ if(w>=h){h=Math.round(h*maxDim/w);w=maxDim;} else {w=Math.round(w*maxDim/h);h=maxDim;} }
+      const c=document.createElement("canvas"); c.width=w; c.height=h; c.getContext("2d").drawImage(src,0,0,w,h);
+      if(src.close) src.close(); if(src.src && src.src.startsWith("blob:")) URL.revokeObjectURL(src.src);
       let q=0.72, url=c.toDataURL("image/jpeg",q);
-      while(url.length > 900*1024 && q>0.3){ q-=0.15; url=c.toDataURL("image/jpeg",q); }
+      while(url.length>900*1024 && q>0.3){ q-=0.15; url=c.toDataURL("image/jpeg",q); }
       return url;
     }
+
+    // ── 방 만들기 / 멤버 관리 (관리자 전용) ──
+    async function createRoom(){
+      const name=(prompt("방 이름을 입력하세요")||"").trim(); if(!name) return;
+      const raw=prompt("참여자 이메일 (여러 명은 쉼표로 구분)\n예: friend@gmail.com, other@gmail.com","")||"";
+      const emails=raw.split(",").map(s=>lower(s)).filter(Boolean);
+      const members=Array.from(new Set([lower(me.email), ...emails]));
+      try{
+        const ref=await addDoc(collection(db,"rooms"),{ name, owner:lower(me.email), members, createdAt:serverTimestamp() });
+        currentId=null; selectRoom(ref.id);
+      }catch(e){ alert("방 생성 실패: "+e.message); }
+    }
+    async function manageMembers(){
+      const r=currentRoom(); if(!r) return;
+      const raw=prompt("참여자 이메일 목록 (쉼표로 구분). 본인은 자동 포함돼요.", (r.members||[]).join(", "));
+      if(raw===null) return;
+      let members=Array.from(new Set(raw.split(",").map(s=>lower(s)).filter(Boolean)));
+      if(!members.includes(lower(me.email))) members.push(lower(me.email));
+      try{ await updateDoc(doc(db,"rooms",r.id),{ members }); }
+      catch(e){ alert("멤버 수정 실패: "+e.message); }
+    }
+
+    updateEmpty();
   </script>
 </body>
 </html>

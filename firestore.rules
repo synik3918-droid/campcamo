@@ -1,26 +1,41 @@
 rules_version = '2';
-// Firebase 콘솔 → Firestore Database → 규칙(Rules) 탭에 붙여넣고 '게시'.
-// ⚠️ 아래 두 이메일을 firebase-config.js의 ALLOWED_EMAILS와 똑같이 맞추세요.
+// Firebase 콘솔 → Firestore Database → 규칙(Rules) 에 붙여넣고 '게시'.
+//
+// 멤버 목록은 각 방 문서(rooms/{rid}.members)에서 관리 = 단일 소스.
+// 방 생성/멤버 수정은 관리자(ADMIN)만 가능 = 한쪽에서만 관리.
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function allowed() {
-      return request.auth != null
-        && request.auth.token.email in [
-          'synik3918@gmail.com',      // 서영님
-          'shinkoo.yoon@gmail.com'    // 지인
-        ];
+    // 관리자(방장) 이메일 — firebase-config.js의 ADMIN_EMAIL과 동일하게.
+    function ADMIN() { return 'synik3918@gmail.com'; }
+    function em() { return request.auth.token.email; }
+    function roomMembers(rid) {
+      return get(/databases/$(database)/documents/rooms/$(rid)).data.members;
     }
 
-    // 메시지 (텍스트/이미지 둘 다)
-    match /rooms/{room}/messages/{msg} {
-      allow read, create: if allowed();
-      allow update, delete: if false;
-    }
+    match /rooms/{rid} {
+      // 내가 멤버인 방만 조회 가능
+      allow read: if request.auth != null && em() in resource.data.members;
 
-    // 읽음 표시 (각자 자기 read 문서 갱신)
-    match /rooms/{room}/reads/{who} {
-      allow read, write: if allowed();
+      // 방 생성은 관리자만 (owner도 본인으로)
+      allow create: if request.auth != null
+        && em() == ADMIN()
+        && request.resource.data.owner == em()
+        && em() in request.resource.data.members;
+
+      // 방 이름/멤버 수정·삭제는 방장만
+      allow update, delete: if request.auth != null && em() == resource.data.owner;
+
+      // 메시지: 방 멤버만 읽기/작성
+      match /messages/{msg} {
+        allow read, create: if request.auth != null && em() in roomMembers(rid);
+        allow update, delete: if false;
+      }
+
+      // 읽음 표시: 방 멤버만
+      match /reads/{who} {
+        allow read, write: if request.auth != null && em() in roomMembers(rid);
+      }
     }
   }
 }
