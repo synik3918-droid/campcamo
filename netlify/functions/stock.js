@@ -32,7 +32,6 @@ exports.handler = async (event) => {
       up: dir.code === "1" || dir.code === "2",   // 1/2 상승
       down: dir.code === "4" || dir.code === "5", // 4/5 하락
       market: d.stockExchangeType && d.stockExchangeType.name || "",
-      _raw: d,   // 첫 배포 검증용 (나중에 제거)
     };
     return { statusCode: 200, headers, body: JSON.stringify(out) };
   } catch (e) {
