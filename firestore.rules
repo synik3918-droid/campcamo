@@ -1,5 +1,5 @@
 rules_version = '2';
-// Firebase 콘솔 → Firestore Database → 규칙(Rules) 탭에 아래를 붙여넣고 '게시'.
+// Firebase 콘솔 → Firestore Database → 규칙(Rules) 탭에 붙여넣고 '게시'.
 // ⚠️ 아래 두 이메일을 firebase-config.js의 ALLOWED_EMAILS와 똑같이 맞추세요.
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -12,19 +12,15 @@ service cloud.firestore {
         ];
     }
 
+    // 메시지 (텍스트/이미지 둘 다)
     match /rooms/{room}/messages/{msg} {
-      // 두 사람만 읽기 가능
-      allow read: if allowed();
-
-      // 두 사람만 쓰기 가능 + 보낸이는 본인 이메일이어야 함
-      allow create: if allowed()
-        && request.resource.data.senderEmail == request.auth.token.email
-        && request.resource.data.text is string
-        && request.resource.data.text.size() > 0
-        && request.resource.data.text.size() <= 2000;
-
-      // 수정/삭제는 막음(간단하게)
+      allow read, create: if allowed();
       allow update, delete: if false;
+    }
+
+    // 읽음 표시 (각자 자기 read 문서 갱신)
+    match /rooms/{room}/reads/{who} {
+      allow read, write: if allowed();
     }
   }
 }
