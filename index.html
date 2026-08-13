@@ -112,6 +112,13 @@
     .tv-del{ background:transparent; border:none; color:var(--sub); cursor:pointer; font-size:12px; padding:2px 5px; }
     .tv-del:hover{ color:#f87171; }
     .rail-empty{ color:var(--sub); font-size:13px; text-align:center; padding:28px 12px; line-height:1.7; }
+    .kr-body{ padding:12px 12px 14px; }
+    .kr-name{ font-size:14px; font-weight:700; margin-bottom:8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .kr-price{ font-size:22px; font-weight:800; }
+    .kr-price small{ font-size:12px; font-weight:500; color:var(--sub); }
+    .kr-change{ font-size:13px; margin-top:4px; font-weight:600; }
+    .kr-up{ color:#f05b5b; } .kr-down{ color:#4c8dff; } .kr-flat{ color:var(--sub); }
+    .kr-loading,.kr-error{ color:var(--sub); font-size:13px; padding:16px 12px; }
     @media (min-width:1200px){
       #app{ max-width:1600px; }
       #stock-rail:not([hidden]){ display:flex; width:320px; flex:0 0 320px; }
@@ -505,6 +512,50 @@
       || ["KRX:005930","KRX:000660","KRX:035720"];   // 기본: 삼성전자·SK하이닉스·카카오
     function saveWatch(){ localStorage.setItem(STOCK_KEY, JSON.stringify(watchlist)); }
 
+    function cardHead(sym, label){
+      const head=document.createElement("div"); head.className="tv-card-head";
+      const lbl=document.createElement("span"); lbl.textContent=label;
+      const del=document.createElement("button"); del.className="tv-del"; del.textContent="✕"; del.title="삭제";
+      del.onclick=()=>{ watchlist=watchlist.filter(s=>s!==sym); saveWatch(); renderStocks(); };
+      head.appendChild(lbl); head.appendChild(del);
+      return head;
+    }
+
+    // 국내주식 카드 (네이버 시세, 서버리스 함수 경유)
+    function krCard(sym, code){
+      const card=document.createElement("div"); card.className="tv-card";
+      card.appendChild(cardHead(sym, "KRX:"+code));
+      const body=document.createElement("div"); body.className="kr-body kr-loading"; body.textContent="불러오는 중…";
+      card.appendChild(body);
+      fetch(`/.netlify/functions/stock?code=${code}`).then(r=>r.json()).then(d=>{
+        if(d.error){ body.className="kr-body kr-error"; body.textContent="시세 불러오기 실패 ("+d.error+")"; return; }
+        const cls=d.up?"kr-up":d.down?"kr-down":"kr-flat";
+        const arrow=d.up?"▲":d.down?"▼":"―";
+        const chg=String(d.change||"").replace(/^-/,"");
+        const rate=String(d.rate||"").replace(/^-/,"");
+        body.className="kr-body";
+        body.innerHTML=`<div class="kr-name">${d.name||code}</div>
+          <div class="kr-price">${d.price||"-"}<small> 원</small></div>
+          <div class="kr-change ${cls}">${arrow} ${chg} (${rate}%)</div>`;
+      }).catch(()=>{ body.className="kr-body kr-error"; body.textContent="시세 불러오기 실패"; });
+      return card;
+    }
+
+    // 해외주식 카드 (TradingView 위젯 — 미국 등은 위젯에서 시세 나옴)
+    function tvCard(sym){
+      const card=document.createElement("div"); card.className="tv-card";
+      card.appendChild(cardHead(sym, sym));
+      const cont=document.createElement("div"); cont.className="tradingview-widget-container";
+      const inner=document.createElement("div"); inner.className="tradingview-widget-container__widget";
+      cont.appendChild(inner);
+      const s=document.createElement("script"); s.type="text/javascript"; s.async=true;
+      s.src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js";
+      s.text=JSON.stringify({ symbol:sym, width:"100%", height:150, locale:"kr",
+        dateRange:"1D", colorTheme:"dark", isTransparent:true, autosize:false });
+      cont.appendChild(s); card.appendChild(cont);
+      return card;
+    }
+
     function renderStocks(){
       const list=$("stock-list"); if(!list) return;
       list.innerHTML="";
@@ -514,23 +565,8 @@
         list.appendChild(d); return;
       }
       watchlist.forEach(sym=>{
-        const card=document.createElement("div"); card.className="tv-card";
-        const head=document.createElement("div"); head.className="tv-card-head";
-        const lbl=document.createElement("span"); lbl.textContent=sym;
-        const del=document.createElement("button"); del.className="tv-del"; del.textContent="✕"; del.title="삭제";
-        del.onclick=()=>{ watchlist=watchlist.filter(s=>s!==sym); saveWatch(); renderStocks(); };
-        head.appendChild(lbl); head.appendChild(del); card.appendChild(head);
-
-        const cont=document.createElement("div"); cont.className="tradingview-widget-container";
-        const inner=document.createElement("div"); inner.className="tradingview-widget-container__widget";
-        cont.appendChild(inner);
-        const s=document.createElement("script");
-        s.type="text/javascript"; s.async=true;
-        s.src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js";
-        s.text=JSON.stringify({ symbol:sym, width:"100%", height:150, locale:"kr",
-          dateRange:"1D", colorTheme:"dark", isTransparent:true, autosize:false, chartOnly:false });
-        cont.appendChild(s); card.appendChild(cont);
-        list.appendChild(card);
+        const m=String(sym).match(/^(?:KRX:)?(\d{6})$/);   // 국내 6자리 → 네이버 카드
+        list.appendChild(m ? krCard(sym, m[1]) : tvCard(sym));
       });
     }
     $("add-stock").onclick=()=>{
