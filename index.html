@@ -312,6 +312,7 @@
           renderRoomList();
           if(currentId) refreshHeader();
           updateEmpty();
+          renderStocks();
         },
         e => console.error("방 목록 오류:", e)
       );
@@ -345,7 +346,7 @@
     function selectRoom(id){
       if(currentId===id){ if(!isDesktop()) appEl.classList.replace("m-list","m-chat"); return; }
       cleanupRoom(); currentId=id;
-      refreshHeader(); renderRoomList(); updateEmpty();
+      refreshHeader(); renderRoomList(); updateEmpty(); renderStocks();
       if(!isDesktop()) appEl.classList.replace("m-list","m-chat");
       unsubMsgs = onSnapshot(
         query(collection(db,"rooms",id,"messages"), orderBy("createdAt"), limit(300)),
@@ -506,17 +507,18 @@
 
     updateEmpty();
 
-    // ── 관심 종목 (TradingView 위젯, 서버 없음) ──
-    const STOCK_KEY="campcamo_watchlist";
-    let watchlist = (()=>{ try{ return JSON.parse(localStorage.getItem(STOCK_KEY))||null; }catch(_){ return null; } })()
-      || ["KRX:005930","KRX:000660","KRX:035720"];   // 기본: 삼성전자·SK하이닉스·카카오
-    function saveWatch(){ localStorage.setItem(STOCK_KEY, JSON.stringify(watchlist)); }
-
+    // ── 관심 종목 (방별 공유: Firestore rooms/{id}.stocks) ──
+    function roomStocks(){ const r=currentRoom(); return (r && r.stocks) || []; }
+    async function setStocks(next){
+      const r=currentRoom(); if(!r) return;
+      try{ await updateDoc(doc(db,"rooms",r.id),{ stocks: next }); }
+      catch(e){ alert("관심종목 저장 실패: "+e.message); }
+    }
     function cardHead(sym, label){
       const head=document.createElement("div"); head.className="tv-card-head";
       const lbl=document.createElement("span"); lbl.textContent=label;
       const del=document.createElement("button"); del.className="tv-del"; del.textContent="✕"; del.title="삭제";
-      del.onclick=()=>{ watchlist=watchlist.filter(s=>s!==sym); saveWatch(); renderStocks(); };
+      del.onclick=()=> setStocks(roomStocks().filter(s=>s!==sym));
       head.appendChild(lbl); head.appendChild(del);
       return head;
     }
@@ -556,25 +558,38 @@
       return card;
     }
 
+    let lastStockSig="";   // 불필요한 재렌더 방지(같은 목록이면 스킵)
     function renderStocks(){
       const list=$("stock-list"); if(!list) return;
+      const r=currentRoom();
+      const sig=(r?r.id:"")+"|"+roomStocks().join(",");
+      if(sig===lastStockSig) return;   // 종목 변화 없으면 다시 안 그림(가격 깜빡임 방지)
+      lastStockSig=sig;
       list.innerHTML="";
-      if(!watchlist.length){
+      if(!r){
         const d=document.createElement("div"); d.className="rail-empty";
-        d.textContent="＋ 추가 로 관심 종목을 넣어보세요.\n예) 005930 = 삼성전자";
+        d.textContent="왼쪽에서 방을 선택하면\n그 방의 관심 종목이 표시돼요.";
         list.appendChild(d); return;
       }
-      watchlist.forEach(sym=>{
+      const stocks=roomStocks();
+      if(!stocks.length){
+        const d=document.createElement("div"); d.className="rail-empty";
+        d.textContent="＋ 추가 로 이 방의 관심 종목을 넣어보세요.\n예) 005930 = 삼성전자";
+        list.appendChild(d); return;
+      }
+      stocks.forEach(sym=>{
         const m=String(sym).match(/^(?:KRX:)?(\d{6})$/);   // 국내 6자리 → 네이버 카드
         list.appendChild(m ? krCard(sym, m[1]) : tvCard(sym));
       });
     }
     $("add-stock").onclick=()=>{
-      const raw=(prompt("관심 종목 추가\n· 한국주식: 6자리 코드 (예: 005930 = 삼성전자)\n· 미국주식: NASDAQ:AAPL 형식\n· 지수: KRX:KOSPI")||"").trim();
+      if(!currentRoom()){ alert("먼저 왼쪽에서 방을 선택하세요."); return; }
+      const raw=(prompt("관심 종목 추가 (이 방에 공유돼요)\n· 한국주식: 6자리 코드 (예: 005930 = 삼성전자)\n· 미국주식: NASDAQ:AAPL 형식\n· 지수: KRX:KOSPI")||"").trim();
       if(!raw) return;
       let sym=raw.toUpperCase();
       if(/^\d{6}$/.test(sym)) sym="KRX:"+sym;   // 6자리면 국내주식으로
-      if(!watchlist.includes(sym)){ watchlist.push(sym); saveWatch(); renderStocks(); }
+      const cur=roomStocks();
+      if(!cur.includes(sym)) setStocks([...cur, sym]);
     };
   </script>
 </body>

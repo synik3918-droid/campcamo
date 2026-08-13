@@ -23,8 +23,13 @@ service cloud.firestore {
         && request.resource.data.owner == em()
         && em() in request.resource.data.members;
 
-      // 방 이름/멤버 수정·삭제는 방장만
-      allow update, delete: if request.auth != null && em() == resource.data.owner;
+      // 방 이름/멤버 수정은 방장만. 단, 관심종목(stocks)만 바꾸는 건 멤버도 허용.
+      allow update: if request.auth != null && (
+        em() == resource.data.owner
+        || ( em() in resource.data.members
+             && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stocks']) )
+      );
+      allow delete: if request.auth != null && em() == resource.data.owner;
 
       // 메시지: 방 멤버만 읽기/작성
       match /messages/{msg} {
